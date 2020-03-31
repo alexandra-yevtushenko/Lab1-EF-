@@ -1,0 +1,245 @@
+﻿@model pineapple_shopModel.pineapple_shopModel;
+@{
+    ViewData["Title"] = "Home Page";
+    List<pineapple_shopModel.PineappleMenu> orderList = new List<pineapple_shopModel.PineappleMenu>();
+    pineapple_shopModel.User user = null;
+    @inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+    System.Security.Claims.Claim query = null;
+    if (HttpContextAccessor.HttpContext.User != null)
+    {
+        query = HttpContextAccessor.HttpContext.User.Claims.FirstOrDefault();
+        if (query != null)
+            user = _context.Users.FirstOrDefault(u => u.Login == query.Value);
+    }
+    @inject pineapple_shopModel.pineapple_shopModel _context;
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome!</h1>
+    <h3> Please, select what do you wanna buy!</h3>
+    <table class="table">
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Description</th>
+                <th scope="col">Weight</th>
+                <th scope="col">Price</th>
+                @if (user != null)
+                {
+                    if (user.StatusId == 0)
+                    {
+                        <th scope="col"> Delete? </th>
+                    }
+                }
+                else
+                {
+                    <th scope="col">Wanna buy?</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var pineapple in Model.PineappleMenus)
+            {
+                <tr>
+                    <th scope="row">@pineapple.Name</th>
+                    <td>@pineapple.Description</td>
+                    <td>@pineapple.Weight</td>
+                    <td>@pineapple.Price</td>
+                    <td>
+                        <input class="form-check-input" type="checkbox" value="" id="buyCheck @pineapple.Id">
+                    </td>
+                </tr>
+            }
+            @if (user != null)
+            {
+                if (user.StatusId == 0)
+                {
+                    <tr>
+                        <td scope="row"> <input id="newName" placeholder="Name" /> </td>
+                        <td> <input id="newDescription" placeholder="Description" /> </td>
+                        <td> <input id="newWeight" placeholder="Weight" /> </td>
+                        <td> <input id="newPrice" placeholder="Price" /> </td>
+                        <td>
+                            <button type="button" class="btn btn-success" onclick="Add();"> Add! </button>
+                        </td>
+                    </tr>
+                }
+            }
+        <tr>
+            @if (user != null)
+            {
+                if (user.StatusId == 0)
+                {
+
+                    <td><button type="button" class="btn btn-success" onclick="RedirectToDeliveries()"> Take a look at deliveries!</button></td>
+                    <td>
+                        <button type="button" class="btn btn-success" onclick="RedirectToUsers()"> Edit users!</button>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-success" onclick="DisplayChart1(); DisplayChart2();"> Get diagrams!</button>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-success" onclick="location.href='@Url.Action("GetReport", "Home")'"> Get report in XLS!</button>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-success" onclick="DeleteSelectedIndexes();"> Delete selected!</button>
+                    </td>
+                }
+            }
+            else
+            {
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>
+                    <button type="button" class="btn btn-success" onclick="GetSelectedIndexes();">Buy selected!</button>
+                </td>
+            }
+        </tr>
+        </tbody>
+    </table>
+
+    @if (user != null)
+    {
+        if (user.StatusId == 0)
+        {<div>
+                <h3>Оберіть exel-файл для заватаження</h3>
+                @using (Html.BeginForm("ImportXcl", "Home", FormMethod.Post, new { enctype = "multipart/form-data", id = "frm-excel" }))
+                {
+                    <div>
+                        Завантажте Excel-файл:
+                        <input type="file" name="fileExcel" id="fileExcel" />
+                        <div>
+                            <input type="submit" value="Завантажити" />
+                        </div>
+                    </div>
+                }
+            </div>
+            <div id="piechart1" style="width: 900px; height: 500px;"></div>
+            <div id="piechart2" style="width: 900px; height: 500px;"></div>
+        }
+    }
+</div>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script>
+
+    google.charts.load('current', {'packages':['corechart']});
+    google.charts.setOnLoadCallback(drawChart);
+    
+    function RedirectToDeliveries()
+    {
+            window.location = 'https://localhost:44356/Users/Delivery';
+    }
+
+    function RedirectToUsers()
+    {
+            window.location = 'https://localhost:44356/Users';
+    }
+
+    async function DisplayChart1()
+    {
+        let response = await fetch('https://localhost:44356/Home/GetMenu');
+        let json = await response.json();
+        let mapped = json.map(p => [p.name, p.price]);
+
+        var data = google.visualization.arrayToDataTable([
+          ['Name', 'Price'], ...mapped
+        ]);
+
+        var options = {
+          title: 'Prices of pineapples'
+        };
+
+        var chart = new google.visualization.PieChart(document.getElementById('piechart1'));
+
+        chart.draw(data, options);
+
+    }
+
+    async function DisplayChart2()
+    {
+        let response = await fetch('https://localhost:44356/Home/GetUsers');
+        let json = await response.json();
+        let admins = json.filter(p => p.statusId == 0).length;
+        let nonAdmins = json.count - admins;
+        let a = ['Admins', admins];
+        let o = ['Other', nonAdmins];
+        var data2 = google.visualization.arrayToDataTable([
+          ['Users', 'Role'], a, o
+        ]);
+
+        var options2 = {
+          title: 'Users'
+        };
+
+        var chart2 = new google.visualization.PieChart(document.getElementById('piechart2'));
+
+        chart2.draw(data2, options2);
+
+    }
+    function GetSelectedIndexes()
+    {
+        let route = 'https://localhost:44356/Order/Index?';
+        count = 0;
+        for (i = 0; i <= @Model.PineappleMenus.Max(m => m.Id); i++)
+        {
+            let chbox = document.getElementById('buyCheck ' + i);
+            if (chbox != null)
+            {
+            if (chbox.checked)
+            {
+                count++;
+                if (count>0)
+                    route += '&ids=' + i;
+                else
+                    route += 'ids=' + i;
+            }
+            }
+        }
+        if (count == 0)
+            alert('Please, select at least 1 item!')
+        else
+            window.location = route;
+    }
+
+    function DeleteSelectedIndexes()
+    {
+        let route = 'https://localhost:44356/Home/DeleteSelected?';
+        count = 0;
+        for (i = 0; i <= @Model.PineappleMenus.Max(m => m.Id); i++)
+        {
+            let chbox = document.getElementById('buyCheck ' + i);
+            if (chbox != null)
+            {
+            if (chbox.checked)
+            {
+                count++;
+                if (count>0)
+                    route += '&ids=' + i;
+                else
+                    route += 'ids=' + i;
+            }
+            }
+        }
+        if (count == 0)
+            alert('Please, select at least 1 item!')
+        else
+            window.location = route;
+    }
+
+    function Add()
+    {
+        let name = document.getElementById("newName").value;
+        let description = document.getElementById("newDescription").value;
+        let price = +document.getElementById("newPrice").value;
+        let weight = +document.getElementById("newWeight").value;
+        console.log(name + " " + description + " " + price + " " + weight);
+        console.log(name && description && price && weight);
+        let route = 'https://localhost:44356/Home/Add?name=' + name + '&description=' + description + '&price' + price + '&weight' + weight;
+        if ((name && description && price && weight) == '')
+            alert('Please, write down all the fields!')
+        else
+            window.location = route;
+    }
+</script>

@@ -1,0 +1,69 @@
+﻿@model List<pineapple_shopModel.DeliveryInfo>
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Delivery</title>
+</head>
+<body>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model[0].Name)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model[0].Address)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model[0].TelNumber)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model[0].Date)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model[0].DeliveryStatus)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model[0].Staff)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model[0].User)
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Name)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Address)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.TelNumber)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Date)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.DeliveryStatus)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Staff.Name)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.User.Email)
+                    </td>
+                    <td>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</body>
+</html>

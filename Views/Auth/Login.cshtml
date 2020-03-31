@@ -1,0 +1,58 @@
+﻿@model pineapple_shopModel.User
+
+@{
+    ViewData["Title"] = "Login";
+    string input_password = "";
+    string input_login = "";
+}
+
+
+<style>
+    .alert {
+        position: relative;
+        background-color: tomato;
+    }
+</style>
+
+@if (!ViewData.ModelState.IsValid && ViewData.ModelState["Error"].Errors.Count > 0)
+{
+    foreach (var error in ViewData.ModelState["Error"].Errors)
+    {
+        <div class="alert">
+            <strong>Error! </strong>@error.ErrorMessage <br />
+        </div>
+    }
+}
+<hr />
+<div class="container">
+
+    <div class="row">
+    <div class="col-md-offset-3 col-md-6">
+        <form class="form-horizontal" asp-action="Login">
+            <h2 >Authorize</h2>
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <span asp-validation-for="PasswordHash" class="text-danger"></span>
+            <div class="form-group">
+                <input type="text" , asp-for="@input_login" class="form-control" required placeholder="Login" />
+            </div>
+            <div class="form-group">
+                <input type="password" , asp-for="@input_password" class="form-control" required placeholder="Password" />
+            </div>
+            <div class="form-group float-right">
+                <input type="submit" value="Register" class="btn btn-outline-primary" onclick="redirect();" asp-action="Register" />
+                <input type="submit" value="Login" class="btn btn-outline-primary " />
+            </div>
+        </form>
+    </div>
+</div>
+</div>
+<script>
+    function redirect()
+    {
+        window.location = 'https://localhost:44356/Auth/Register';
+    }
+</script>
+
+        @section Scripts {
+            @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+        }

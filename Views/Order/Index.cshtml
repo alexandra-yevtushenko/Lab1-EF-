@@ -1,0 +1,31 @@
+﻿@model List<pineapple_shopModel.PineappleMenu>;
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <table class="table">
+    <thead class="thead-dark">
+        <tr>
+            <th scope="col">Image</th>
+            <th scope="col">Name</th>
+            <th scope="col">Description</th>
+            <th scope="col">Weight</th>
+            <th scope="col">Price</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var pineapple in Model)
+        {
+            <tr>
+                <td><img src="..." alt="..." class="img-thumbnail"></td>
+                <th scope="row">@pineapple.Name</th>
+                <td>@pineapple.Description</td>
+                <td>@pineapple.Weight</td>
+                <td>@pineapple.Price</td>
+            </tr>
+        }
+    </tbody>
+</table>
+</div>
