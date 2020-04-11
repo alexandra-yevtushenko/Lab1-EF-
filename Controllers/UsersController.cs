@@ -5,13 +5,14 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using pineapple_shopModel;
 
 namespace PineappleShop.Controllers
 {
     public class UsersController : Controller
     {
         private readonly pineapple_shopModel.pineapple_shopModel _context;
-
+        private User _currentUser;
         public UsersController(pineapple_shopModel.pineapple_shopModel context)
         {
             _context = context;
@@ -45,11 +46,38 @@ namespace PineappleShop.Controllers
             return View(DeliveryInfo);
         }
         // GET: Users/Details/5
+
+        public IActionResult EditPassword(int id)
+        {
+            _currentUser = _context.Users.FirstOrDefault(user => user.Id == id);
+            return View("ChangePassword", _context.Users.FirstOrDefault(user => user.Id == id));
+        }
         public ActionResult Details(int id)
         {
             return View(_context.Users.FirstOrDefault(user => user.Id == id));
         }
 
+        public async Task<IActionResult> ChangePassword([Bind("Id, PasswordHash")] User user, string confirm_password)
+        {
+            if (ModelState.IsValid)
+            {
+                _currentUser = _context.Users.FirstOrDefault(u => u.Id == user.Id);
+                bool passwordsAreDifferent = (confirm_password != user.PasswordHash);
+
+                if ((passwordsAreDifferent))
+                {
+                    if (passwordsAreDifferent)
+                        ModelState.AddModelError("Error", "Passwords are different. Please try again.");
+                }
+                else
+                {
+                    _currentUser.PasswordHash = testcore.Controllers.AuthController.getHashSha256(confirm_password);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction("Index");
+                }
+            }
+            return View("ChangePassword", _currentUser);
+        }
 
         // POST: Users/Create
         [HttpPost]
