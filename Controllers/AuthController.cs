@@ -2,12 +2,16 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
+using System.Net.Mail;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using EmailApp;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -65,7 +69,7 @@ namespace testcore.Controllers
                 user.PasswordHash = getHashSha256(user.PasswordHash);
                 user.Id = id;
                 user.RegDate = DateTime.Now;
-                user.StatusId = 0;
+                user.StatusId = 1;
                 User matchByLogin = await _shopModel.Users.FirstOrDefaultAsync(u => u.Login == user.Login);
                 User matchByEmail = await _shopModel.Users.FirstOrDefaultAsync(u => u.Email == user.Email);
                    
@@ -80,14 +84,20 @@ namespace testcore.Controllers
                 }
                 else
                 {
-                    _shopModel.Add(user);
-                    await _shopModel.SaveChangesAsync();
+                    _shopModel.Users.Add(user);
+                    _shopModel.SaveChanges();
+                    return Content("Для завершения регистрации проверьте электронную почту и перейдите по ссылке, указанной в письме");
                     return RedirectToAction("Login", true);
                 }
             }
             return View("Register");
         }
 
+        public async Task<IActionResult> ConfirmEmail(int userId)
+        {
+            var current_user = _shopModel.Users.FirstOrDefault(u => u.Id == userId);
+            return Content("Email for user: "+ current_user.Login + " was succefully confirmed");
+        }
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(string input_login, string input_password)
